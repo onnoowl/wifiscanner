@@ -76,13 +76,12 @@ fn parse_iw_dev_scan(network_list: &str) -> Result<Vec<Wifi>> {
 }
 
 fn extract_value(line: &str, pattern_start: &str, pattern_end: Option<&str>) -> Result<String> {
-    let start = pattern_start.len();
-    if start < line.len() && &line[0..start] == pattern_start {
-        let end = match pattern_end {
-            Some(end) => line.find(end).ok_or(Error::NoValue)?,
-            None => line.len(),
-        };
-        Ok(line[start..end].to_string())
+    if let Some(line) = line.strip_prefix(pattern_start) {
+        if let Some(end) = pattern_end {
+            Ok(line.strip_suffix(end).unwrap_or(line).to_string())
+        } else {
+            Ok(line.to_string())
+        }
     } else {
         Err(Error::NoValue)
     }
